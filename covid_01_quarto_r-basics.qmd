@@ -64,10 +64,15 @@ Explore `covid` in a new way. Consider using a new function, or something that y
 
 **For your first extension, we encourage you to think small.** Throughout this course, you will build many skills to explore data; for this first week, your work will likely be fairly straightforward. Consider *limiting yourself to 30-45 minutes* for this portion of your work; at the end of that time interval, stop working and make notes on your progress, dead-ends, and aspirations -- bringing those to your group for discussion during the milestone session.
 
+- spent most of this time figuring out how to connect this project to GitHub :) successfully.
+
 Write your extension code in the following chunk:
 
 ```{r}
 #| label: extension
-#| 
+library("dplyr")
+# get unique dates
+unique(covid$state)
+#!!! all 50 states plus NA values
 
 ```
