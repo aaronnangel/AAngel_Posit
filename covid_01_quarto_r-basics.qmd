@@ -1,0 +1,55 @@
+---
+title: R Basics
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+
+# We will learn what this code does in Milestone 2
+covid <- read_csv("data/covid.csv")
+```
+
+## R Basics
+
+In this milestone, you'll become familiar with the `covid` data set. 
+
+
+## Recreation
+
+### Part 1
+
+The data we will use in our investigation is saved as an R object named `covid`. Use R to inspect the contents of `covid`:
+
+- Display the contents of `covid` 
+- Use `nrow()` to find the number of observations in `covid`
+- Use `mean()` to find the average number of COVID-19 tests in the data
+- Use `max()` to find the maximum number of COVID-19 deaths in as single day in a single state
+- Use `summary()` to generate a summary of the data set
+
+*Hint:* you may want to look up the help pages for each of these functions.
+
+Write your code in the following chunk:
+
+
+```{r}
+#| label: recreation
+# Remember that all tidyverse packages have already been installed for you, but you will need to *load* the ones you want to use.
+```
+
+## Extension
+
+Explore `covid` in a new way. Consider using a new function, or something that you can learn from a help page. Alternatively, try to learn more about the other variables in `covid`. Keep in mind that we will study how to make plots for the next milestone.
+
+**For your first extension, we encourage you to think small.** Throughout this course, you will build many skills to explore data; for this first week, your work will likely be fairly straightforward. Consider _limiting yourself to 30-45 minutes_ for this portion of your work; at the end of that time interval, stop working and make notes on your progress, dead-ends, and aspirations -- bringing those to your group for discussion during the milestone session.
+
+Write your extension code in the following chunk:
+
+
+```{r}
+#| label: extension
+
+```
+
