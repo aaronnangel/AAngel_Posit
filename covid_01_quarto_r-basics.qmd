@@ -17,6 +17,9 @@ covid <- read_csv("data/covid.csv")
 
 In this milestone, you'll become familiar with the `covid` data set.
 
+### About the data
+This training uses data from the [COVID-19 Tracking Project](https://covidtracking.com/) & analyzes data from 56 US states and territories in three main areas: testing, hospitalization, and patient outcomes. Learn more about the variables [here](https://rsacdn.link/milestones/internal/covid/assets/covid_dictionary.html).
+
 ## Recreation
 
 ### Part 1
