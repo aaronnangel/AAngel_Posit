@@ -1,0 +1,18 @@
+---
+title: "Importing data from plain text files"
+format: html
+tutorial:
+  id: "import/readr-read-quarto"
+  version: 0.1
+---
+
+## Hello data!
+
+The readr package provides functions for reading files easily and quickly. Let's load it. Be sure to run this chunk:
+
+```{r}
+#| label: setup
+#| include: false
+library(readr)
+```
+
