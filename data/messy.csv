@@ -1,0 +1,19 @@
+The effect of chopstick length on food-pinching efficiency
+
+Efficiency is measured by the average number
+of peanuts picked by subjects in one minute.
+
+length,efficiency,force
+180,24.935,0.7097
+210,25.484,0.6452
+240,26.323,0.6097
+270,24.323,0.5419
+300,24.968,0.4817
+330,24.000,0.4129
+
+Data from Hsu, S. H., & Wu, S. P. (1991). An investigation
+for determining the optimum length of chopsticks. Applied
+ergonomics, 22(6), 395–400. https://doi.org/10.1016/0003
+-6870(91)90082-s
+
+
