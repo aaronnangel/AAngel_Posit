@@ -13,6 +13,86 @@ The readr package provides functions for reading files easily and quickly. Let's
 ```{r}
 #| label: setup
 #| include: false
-library(readr)
+library(tidyverse)
 ```
 
+Next we import our mystery data set, the csv version. What could it be about?
+
+```{r}
+#| label: import
+mystery <- read_csv("data/clean.csv") 
+mystery
+```
+
+## File paths
+
+File paths almost always go in one direction: down. You drill down into folders inside of other folders. If you would like a file path to go “up” use the string .. to go up one folder.
+
+-   e.g. "../data/clean.csv" - look in the folder that contains the folder your Quarto file is in for a folder named data. Then look in data for a file named clean.csv.
+-   "../../data/clean.csv" - look in the folder that contains the folder your Quarto file is in. Then look in the folder that contains that folder for a folder named data. Then look in data for a file named clean.csv.
+
+## What's missing?
+
+Let's read the data set in again. This time, replace all values of `missing` with `NA` as you do. Fill in the blank with the appropriate code.
+
+```{r}
+#| label: missing
+mystery <- read_csv("data/clean.csv", na = "missing")
+mystery
+```
+
+## read_delim() family
+
+In fact, read_csv() is a special case of read_delim() that uses the preset delim = ",". readr comes with other common special cases.
+
+-   read_csv() is the equivalent of read_delim(delim = ",")
+-   read_csv2() is the equivalent of read_delim(delim = ";")
+-   read_tsv() is the equivalent of read_delim(delim = "\t"), i.e. tab separated values
+
+## Get fixed
+
+Fixed width files, like `clean.fwf` do not use a delimiter between cells. They use spaces to ensure that each column is a fixed number of characters wide.
+
+Fixed width files require a different approach. Let's read `clean.fwf`.
+
+```{r}
+#| label: fwf
+mystery <- read_table("data/clean.fwf") 
+mystery
+```
+
+## Metadata
+It is time to get philosophical. Why don’t we know what this data set describes?
+
+Sometimes it is hard to convey information about a data set within the data set itself. This outside information , or “metadata”, needs to appear outside of the data, which is why you often find files like `messy.csv`. 
+
+The data comes from [a real study](https://pubmed.ncbi.nlm.nih.gov/15676839/) that measures the effectiveness of different lengths of chopsticks. Subjects used chopsticks of different lengths to move as many peanuts as they could from one bowl to another in one minute. And guess what? 240 mm chopsticks were the way to go, as you probably suspected.
+
+## Getting messy
+
+Aha! Our data describes the food-pinching power of chopsticks! But can you leave that information behind as you read in `messy.csv`? Read just the table in the file.
+
+```{r}
+#| label: messy
+chopsticks <- read_csv("data/messy.csv", 
+                       skip = 5, # skip 5 lines of text in the file 
+                       n_max = 6 # read only n lines of data & doesn't                                     count the header
+                       )
+chopsticks
+```
+Now that we know what our data is about, let's save it with a better name. Save `chopsticks` in your data folder as `chopsticks.csv`.
+
+```{r}
+#| label: write
+
+write_csv(chopsticks, file =  "data/chopsticks.csv")
+```
+
+## More references
+To learn much more about importing text files into R, check out:
+
+The [Data Import](https://r4ds.had.co.nz/data-import.html) chapter of R for Data Science for additional explanations and exercises.
+
+The [readr package website](https://readr.tidyverse.org/) for thorough documentation on use cases and optional arguments.
+
+The [readr RStudio cheat sheet](https://github.com/rstudio/cheatsheets/blob/main/data-import.pdf) for a quick reference about Data Import in R.
