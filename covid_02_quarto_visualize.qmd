@@ -1,0 +1,115 @@
+---
+title: Read and Visualize
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load your packages here
+library(tidyverse)
+
+```
+
+## Read and Visualize
+
+In this milestone, you'll use ggplot2 to visualize how the number of COVID-19 cases evolved in the state of New York (NY). But before you begin, you'll need to import the `covid` data set. Unlike Milestone 1, the data set has not been loaded for you.
+
+
+## Recreation
+
+### Part 1 - Import
+
+In the code chunk below, use a command from the readr package to read in the data set.
+
+* The data set lives in the file `covid.csv`, which is stored in the `data/` folder in your working directory.
+* Save the data set as an object named `covid`.
+
+
+```{r}
+#| label: recreation-import
+# Remember that all tidyverse packages have already been installed for you,
+# but you will need to *load* the ones you want to use. As a best practice when
+# working within a Quarto document like this one, load any packages you
+# will use within the code chunk labeled `setup` at the top of the file.
+
+covid <- read_csv("data/covid.csv")
+
+```
+
+### Part 2 - Visualize
+
+Run the code chunk below to see a plot. Your task is to recreate this plot.
+
+
+```{r}
+#| label: recreate-this
+#| message: false
+knitr::include_graphics("images/milestone02.png")
+```
+
+Use `ggplot()` in the chunk below to re-create the plot above. Before plotting, you will first need to filter your data set to only include observations from New York.
+
+
+```{r}
+#| label: recreation-visualize
+# Remember that all tidyverse packages have already been installed for you,
+# but you will need to *load* the ones you want to use. As a best practice when
+# working within a Quarto document like this one, load any packages you
+# will use within the code chunk labeled `setup` at the top of the file.
+glimpse(covid)
+
+covid %>% 
+  filter(state == "NY") %>% 
+  ggplot(aes(x = date, y = cases)) +
+  geom_line()
+
+```
+
+## Extension
+
+Using the code chunk below, investigate a research question about this data, using the visualization skills you learned this week. Some ideas:
+
+1. Your recreation focused on the evolution of COVID-19 cases in the state of New York. How does the trajectory of New York compare to another state with similar case counts?
+2. Do you see similar patterns across states? Does this answer change if you look at only high (or low) case counts?
+3. Within a state or states of interest, what patterns do you see between number of cases and number of deaths over time?
+4. [any other research question of interest]
+
+Alternately, working with a data set of your own, complete the following: 
+
+1. Read in your data
+2. Filter your data using a logical test/condition 
+3. Graph this data subset using at least one geom 
+
+
+
+```{r}
+#| label: extension
+
+filter(covid, is.na(cases))
+
+# average daily increase in positive and probable COVID-19 cases by state
+case_counts <- covid %>% 
+  group_by(state) %>% 
+  summarise(avg_increase = mean(cases))
+
+filter(case_counts, state == "NY")
+#!!! average increase of 4,531 cases in NY
+
+# other states with similar case numbers
+filter(case_counts, avg_increase >= 3000,
+       avg_increase <= 5000)
+#!!! FL (4,726) and IL (3,248) have the closest average increase in cases to NY
+
+covid %>% 
+  filter(state %in% c("NY", "FL", "IL")) %>% 
+  ggplot(aes(x = date, y = cases, color = state)) +
+  geom_line() +
+  scale_color_brewer(type = "qual", palette = "Dark2")
+
+```
+- These three states had similar average case increase rates
+- FL and NY had peaks in cases earlier in the year (~Apr - July), while IL had their peak around December 2020
+- FL & NY had a similar additional peak in early 2021
