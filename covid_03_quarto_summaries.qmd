@@ -1,0 +1,184 @@
+---
+title: Summarize data
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load your packages here
+library(tidyverse)
+```
+
+## Summarize data
+
+In this milestone you'll group the data by state and then summarize the results to determine the top ten states with the highest COVID-related deaths.
+
+
+## Recreation
+
+### Part 1 - Import
+
+Before you begin, you will need to import your data set. Use the code chunk below to read the data from the data file `covid.csv`, which is stored in the `data/` folder in your working directory. Be sure to save the data to an object named `covid`.
+
+
+```{r}
+#| label: recreation-import
+# Remember that all tidyverse packages have already been installed for you,
+# but you will need to *load* the ones you want to use. As a best practice when
+# working within a Quarto document like this one, load any packages you
+# will use within the code chunk labeled `setup` at the top of the file.
+covid <- read.csv("data/covid.csv")
+```
+
+### Part 2 - Summarize data
+
+Run the code below to see a table.
+
+
+```{r}
+#| label: recreate-this
+#| message: false
+solution <- readr::read_csv("data/milestone03.csv")
+solution
+```
+
+Your task is to use what you've learned about the dplyr package to transform `covid` into this table. You will need to:
+
+1. Group the data
+2. Summarize `total_cases` and `total_deaths` for each group
+3. Use `slice_max()` to find the top ten states with the highest `total_deaths`
+
+Work in the code chunk below. Save the result as `cases_deaths`.
+
+
+```{r}
+#| label: recreation-summary
+cases_deaths <- covid %>% 
+  select(state, cases, deaths) %>% 
+  group_by(state) %>% 
+  summarise(total_cases = sum(cases),
+            total_deaths = sum(deaths)) %>% 
+  slice_max(n = 10, order_by = total_deaths)
+
+```
+
+Run the following code chunk to test whether you have the same answer as the solution:
+
+
+```{r}
+#| label: compare
+#| eval: false
+waldo::compare(cases_deaths, solution, tolerance = 1e-4)
+```
+
+## Extension
+
+Using the code chunk below, investigate a research question about this data, using the data wrangling skills you learned this week. Some ideas:
+
+1. Data visualization is often an easier way to see patterns than numbers in a table. Build a graph from your summary table of the 10 states with the most deaths. Do you see any relationship between the number of cases and the number of deaths in these states?
+2. Create both a table and a related graph for the 10 states with the _fewest_ deaths. Do you see any relationship between the number of cases and the number of deaths in these states?
+3. We have not yet explored the number of COVID-19 tests; what can you learn about the number of tests administered in different states? The relationship between tests and cases?
+4. [any other research question of interest]
+
+Alternately, working with a data set of your own, complete the following:
+
+1. Read in your data
+2. Use `group_by()` and `summarize()` to produce simple a table from some subset of your data 
+3. Create a related graph of this data subset using ggplot 
+
+
+### Part 1 - States with the most cases
+```{r}
+#| label: extension
+# calculate death rate of states with highest total deaths
+top_deaths <- cases_deaths %>% 
+  mutate(death_rate = (total_deaths/total_cases) * 100)
+
+# sort top 10 states by highest case numbers 
+top_cases <- covid %>% 
+  select(state, tests, cases, deaths) %>% 
+  group_by(state) %>% 
+  summarise(total_cases = sum(cases),
+            total_deaths = sum(deaths),
+            total_tests = sum(tests)) %>% 
+  slice_max(n = 10, order_by = total_cases) %>% 
+  # add case rate
+  mutate(case_rate = (total_cases/total_tests) *100)
+
+# join by state, keep all rows
+top_deaths_cases <- top_deaths %>% 
+  full_join(top_cases)
+
+# visualize top cases, fill by case rate
+range(top_cases$total_cases)
+# add variable - cases in thousands
+top_cases <- top_cases %>% 
+  mutate(cases_thou = total_cases/1000)
+
+range(top_cases$cases_thou)
+
+top_cases %>% 
+  ggplot(aes(x = reorder(state, desc(cases_thou)), y = cases_thou)) +
+  geom_col(aes(fill = case_rate)) +
+  scale_fill_gradient(low = "yellow", high = "red") +
+  scale_y_continuous(breaks = c(0, 500, 1000, 2000, 3000, 4000),
+                     limits = c(0, 4000),
+                     # get rid of space before 0 on x-axis 
+                     expand = c(0,0)) +
+  labs(
+    x = "State",
+    y = "Total cases (in thousands)",
+    fill = "% Positive",
+    title = "Top 10 States with the Highest Case Counts",
+    subtitle = "Case rate varies among states with the highest number of cases",
+    caption = "Source: https://covidtracking.com/")
+
+```
+
+### Part 2 - Deaths across the US
+```{r}
+# visualize total deaths across the US, fill by mortality rate
+ range(top_deaths$total_deaths)
+ #!!! 16,658-54,124
+ 
+ range(top_deaths$death_rate)
+ #!!! 1.5-3
+
+# calculate all state deaths and mortality rate
+  all_cases_deaths <- covid %>% 
+    select(state, cases, deaths) %>% 
+    group_by(state) %>% 
+    summarise(total_cases = sum(cases),
+              total_deaths = sum(deaths),
+              mortality_rate = (total_deaths/total_cases) *100) %>% 
+    # add death rate categories
+    mutate(mortality = case_when(
+            mortality_rate < 1.5 ~ "Low",
+            mortality_rate > 1.5 & mortality_rate < 2 ~ "Medium",
+            mortality_rate > 2 ~ "High"))
+  
+
+  
+  range(all_cases_deaths$mortality_rate)
+  #!!! low - 0-0.5, Medium 0.51-1.5, High 1.51-3
+ 
+ 
+ggplot(all_cases_deaths, aes(x = reorder(state, desc(total_deaths)), 
+                            y = total_deaths, 
+                            fill = mortality_rate)) +
+  geom_col() +
+  facet_wrap(~mortality, nrow = 3) +
+  labs(
+    x = "State",
+    y = "Total deaths",
+    fill = "Mortality (%)",
+    title = "Deaths and mortality rates across the U.S.",
+    subtitle = "States are ordered by # of deaths",
+    caption = "Source: https://covidtracking.com/") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+```
+
