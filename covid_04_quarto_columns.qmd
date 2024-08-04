@@ -1,0 +1,217 @@
+---
+title: Create and select columns
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load your packages here
+library(tidyverse)
+library(patchwork)
+```
+
+## Create and select columns
+
+In this milestone, you'll create a new variable that calculates the cumulative number of cases and deaths across states. 
+
+
+## Recreation
+
+### Part 1 - Import
+
+Before you begin, you will need to import your data set. Use the code chunk below to read the data from the data file `covid.csv`, which is stored in the `data/` folder in your working directory. Be sure to save the data to an object named `covid`.
+
+
+```{r}
+#| label: recreation-import
+# Remember that all tidyverse packages have already been installed for you, but you will need to *load* the ones you want to use. As a best practice when working within a Quarto document like this one, load any packages you will use within the code chunk labeled `setup` at the top of the file.
+covid <- read.csv("data/covid.csv")
+```
+
+### Part 2 - Create
+
+We would like to find the cumulative number of cases and deaths over time for each state. Run the code below to see a table.
+
+
+```{r}
+#| label: recreate-this
+#| message: false
+solution <- readr::read_csv("data/milestone04.csv")
+solution
+```
+
+Your task is to use what you've learned about the dplyr package to transform `covid` into this table. You will need to:
+
+1. Create two new columns named `cumul_cases` and `cumul_deaths`, which contain the result of `cumsum()`. Hint: What function, placed before `mutate()`, will calculate the cumulative sums separately for each state?
+
+2. Select four columns: `state`, `date`, `cumul_cases`, `cumul_deaths`.
+
+3. Arrange the rows by `state` and `date`
+
+Work in the code chunk below.
+
+Save your resulting table as `covid_cumul`.
+
+
+```{r}
+#| label: recreation-create
+glimpse(covid)
+# change date column to date format
+covid <- covid %>% 
+ mutate(date = as.Date(date))
+
+covid_cumul <- covid %>% 
+  # create `cumul_cases` and `cumul_deaths` columns
+  group_by(state) %>% 
+  mutate(cumul_cases = cumsum(cases),
+         cumul_deaths = cumsum(deaths)) %>%
+  ungroup() %>% 
+  # select state, date, & new columns
+  select(state, date, cumul_cases, cumul_deaths) %>% 
+  # arrange by state and date
+  arrange(state, date) 
+  
+
+```
+
+Run the following code chunk to test whether you have the same answer as the solution:
+
+
+```{r}
+#| label: compare
+#| eval: false
+waldo::compare(covid_cumul, solution, tolerance = 1e-4, ignore_attr = c("class", "groups"))
+
+glimpse(solution)
+glimpse(covid_cumul)
+```
+- On first try, I was getting differences in the date column - it was in the Date format in the solution, while it loads in the Character format.
+- I used `mutate(as.Date())` to accomplish this change
+
+## Extension
+
+Using the code chunk below, investigate a research question about this data, using the additional data wrangling skills you learned this week. Some ideas:
+
+1. Some states within the US coordinated their policies in response to the pandemic; do you see a regional or coalition-based pattern in case counts, deaths, or other variables? Illustrate your findings with at least one graph.
+2. Milestone 2 focused on patterns in case _counts_ over time, within New York. What patterns do you see in the _ratio_ of deaths to case counts, over time, within New York and elsewhere? (Compare with states of your choosing.)
+3. Based on _either_ case numbers or deaths, divide this data into groups of your choosing (e.g. low/medium/high, above/below a national average, etc.) and explore patterns based on these groups.
+4. [any other research question of interest]
+
+Alternately, working with a data set of your own, complete the following:
+
+1. Read in your data
+2. Create at least one new variable in your data set (using `mutate()` and/or `summarize()`), or use other dplyr functions to alter your data
+3. Use your updated data set to create at least one graph and/or table
+
+
+```{r}
+#| label: extension
+# compute & visualize national average of cases and deaths over time
+
+# state totals by month & year
+state_totals <- covid_cumul %>% 
+  # separate date cols
+  mutate(year = lubridate::year(date), 
+         month = lubridate::month(date),
+         day = lubridate::day(date)) %>% 
+  group_by(state, year, month) %>% 
+  summarise(month_cases = sum(cumul_cases), 
+            month_deaths = sum(cumul_deaths),
+            death_rate = month_deaths/month_cases *100)
+
+unique(state_totals$year)
+unique(covid$date)
+
+# range of death rates for faceting
+range(state_totals$death_rate, na.rm = T)
+#!!! ranges for date_rate facet: low = 0-2, medium = 2-6, high 6-10
+
+# assign death rate categories to each state
+state_totals <- state_totals %>% 
+  mutate(
+    death_rate_cat = case_when(
+      death_rate >= 0 & death_rate <= 2  ~ "Low",
+      death_rate > 2 & death_rate <= 6 ~ "Medium",
+      death_rate > 6 & death_rate < 10 ~ "High")
+  )
+
+# calculate national average by year and month
+nat_avg <- state_totals %>% 
+  group_by(year, month) %>% 
+  summarise(avg_cases = mean(month_cases),
+            sd_cases = sd(month_cases),
+            avg_deaths = mean(month_deaths),
+            sd_deaths = sd(month_deaths),
+            avg_deathrate = mean(death_rate),
+            sd_deaths = sd(death_rate))
+glimpse(nat_avg)
+
+# join nat_avg to state_avg table
+avg_all <- state_totals %>% 
+  # leaving the 'by' argument blank uses all in common variables for the join
+  full_join(nat_avg) %>% 
+  # reform month-year date
+ mutate(date = zoo::as.yearmon(paste(year, month), "%Y %m"))
+
+
+glimpse(avg_all)
+
+# create plot comparing to NY, FL, & IL
+state_p <- avg_all %>% 
+  filter(state %in% c("NY", "FL", "IL")) %>% 
+  ggplot(aes(x = date, y = month_cases)) +
+  geom_line(aes(color = state)) 
+
+
+nat_p <- avg_all %>% 
+  ggplot(aes(x = date, y = avg_cases)) +
+  geom_line()
+
+state_p + nat_p
+
+# try combined plot
+combined_p <- avg_all %>% 
+  filter(state %in% c("NY", "FL", "IL")) %>% 
+  ggplot(aes(x = date)) +
+  geom_line(aes(y = month_cases, color = state)) +
+  geom_line(aes(y = avg_cases))
+  
+combined_p
+
+# visualize national average vs select state averages
+range(avg_all$month_cases)
+
+avg_all <- avg_all %>% 
+  mutate(month_cases_thou = month_cases/1000,
+         nat_avg_thou = avg_cases/1000)
+glimpse(avg_all)
+
+avg_all %>% 
+  filter(!is.na(death_rate_cat) & !is.na(state)) %>% 
+  ggplot(aes(x = date)) +
+  geom_line(aes(y = month_cases_thou, color = state)) +
+  geom_line(aes(y = nat_avg_thou)) +
+  facet_wrap(~factor(death_rate_cat, c("High", "Medium", "Low")), ncol = 1) +
+  scale_x_continuous(n.breaks = 10, 
+                     labels = c("Mar 2020", "Apr 2020", "May 2020",
+                                "Jun 2020", "Jul 2020", "Aug 2020",
+                                "Sep 2020", "Oct 2020", "Nov 2020",
+                                "Dec 2020", "Jan 2021", "Feb 2021",
+                                "Mar 2021")) + 
+  labs(
+    x = "Date",
+    y = "Total cases (thousands)",
+    color = "State",
+    title = "Cases across the U.S. by % mortality (Low/Medium/High)
+    compared to the national average (black)",
+    subtitle = "Low = 0-2%; Medium = 2-6%; High 6-10%",
+    caption = "Source: https://covidtracking.com/") +
+  theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1))
+
+ggsave(path = "images", filename = "covid_columns.pdf", width = 20, height = 20, units = "cm")
+```
+States with a *low* mortality rate tend to be reporting cases more frequently than states with *high* mortality rates. So, the mortality rate calculation may be skewed lower for states that more regularly test and higher for those that only test in dire situations.
+
