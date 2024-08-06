@@ -1,0 +1,125 @@
+---
+title: Tidy and join tables
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load your packages here
+library(tidyverse)
+```
+
+## Tidy and join
+
+In this milestone, you'll join two data sets to calculate the cumulative deaths and cumulative proportion of deaths by state. To do this, you'll need to use the data in `covid_state_pop.csv` alongside the data you've been using in `covid.csv`. Both data sets are stored in your `data/` directory.
+
+## Recreation
+
+### Part 1 - Import
+
+Before you begin, you will need to import your data sets. Use the code chunk below to read two data sets from the `data/` directory:
+
+1.  `covid.csv`, save it as `covid`
+2.  `covid_state_pop.csv`, save it as `covid_state_pop`
+
+```{r}
+#| label: recreation-import
+covid <-
+  read.csv("data/covid.csv")
+
+covid_state_pop <-
+  read.csv("data/covid_state_pop.csv")
+```
+
+### Part 2 - Join tables
+
+Run the code below to see a table.
+
+```{r}
+#| label: recreate-this
+#| message: false
+solution <- readr::read_csv("data/milestone05.csv")
+solution
+```
+
+Your task is to use what you've learned about the dplyr package to transform `covid` and `covid_state_pop` into this table. You will need to do some pre-join checks:
+
+1.  Which variables can you join on?
+2.  Do the data sets have any mismatched observations?
+3.  Perform any necessary data cleaning.
+4.  Check again as needed!
+
+Hint: you can use the `drop_na()` function from the tidyr package to remove missing values for a given column.
+
+#### Pre-join Checks
+
+```{r}
+#| label: recreation-join
+glimpse(covid)
+glimpse(covid_state_pop)
+
+# check the state variable of each df
+unique(covid$state)
+
+# remove NA state rows
+covid <- 
+  covid %>% 
+  drop_na(state)
+
+unique(covid$state)
+```
+
+We can now join these dfs on the `state` column.
+
+Next:
+
+1\. Join the cleaned data sets (or clean as part of your pipe)
+
+2\. Compute useful summaries grouped by `state`:
+
+-    `cumul_deaths`, cumulative deaths
+
+-   `cumul_prop_deaths`, cumulative proportion of deaths (i.e. cumulative deaths divided by the population)
+
+3\. Select some selected columns
+
+Work in the code chunk below. Save the result as `covid_cumul_prop`.
+
+#### Join
+
+```{r}
+covid_cumul_prop <-
+  covid %>% 
+    left_join(covid_state_pop, "state") %>% 
+    group_by(state) %>% 
+    mutate(cumul_deaths = cumsum(deaths),
+           cumul_prop_deaths = 
+                cumul_deaths/population) %>% 
+    ungroup() %>% 
+    select(date, state, cumul_deaths,
+           cumul_prop_deaths) %>% 
+    mutate(date = as_date(date))
+```
+
+Run the following code chunk to test whether you have the same answer as the solution:
+
+```{r}
+#| label: compare
+#| eval: false
+waldo::compare(covid_cumul_prop, solution, tolerance = 1e-4, ignore_attr = c("class", "groups"))
+```
+
+## Extension
+
+As an optional final extension, create a Quarto report summarizing the work done in your previous milestones, either with the project data or your own data.
+
+In this report, include:
+
+1.  Some text about the data and your goals in data exploration
+2.  A small table and/or data visualization(s)
+3.  A short block of text that explains the figure *and* makes use of some of the text styling available within Quarto
+
+**See an example Quarto report [here](https://rsacdn.link/milestones/internal/covid/assets/covid_report.html){target="_blank" rel="noopener noreferrer"}.**
