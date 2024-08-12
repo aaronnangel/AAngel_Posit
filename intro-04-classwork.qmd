@@ -255,8 +255,18 @@ Don't forget to set a seed when you resample!
 
 ```{r}
 # Your code here!
+set.seed(322)
+mc_cv(forested_train, times = 10)
 
+set.seed(853)
+forested_val_split <- 
+  # generates the validation object
+  initial_validation_split(forested)
+validation_set(forested_val_split)
 ```
+MC cross-validation takes a random sample (without replacement) of the original data set to be used for analysis. All other data points are added to the assessment set.
+
+A validation set is just another type of resample.
 
 ## Create a random forest model
 
@@ -279,7 +289,13 @@ Use `fit_resamples()` and `rf_wflow` to:
 
 ```{r}
 # Your code here!
+ctrl_forested <- control_resamples(save_pred = TRUE)
 
+# Random forest uses random numbers so set the seed first
+
+set.seed(2)
+rf_res <- fit_resamples(rf_wflow, forested_folds, control = ctrl_forested)
+collect_metrics(rf_res)
 ```
 
 
