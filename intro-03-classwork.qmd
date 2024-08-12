@@ -24,8 +24,21 @@ forested_test <- testing(forested_split)
 ## Your turn
 
 How do you fit a linear model in R?
+-  `lm`, `lmer` package, `glm`
 
 How many different ways can you think of?
+**these are all different *engines* **
+-  `lm` for linear model
+
+-  `glmnet` for regularized regression
+
+-  `keras` for regression using `TensorFlow`
+
+-  `stan` for Bayesian regression
+
+-  `spark` for large data sets
+
+-  `brulee` for regression using torch
 
 Discuss with your neighbor!
 
@@ -43,14 +56,13 @@ linear_reg() %>%
 decision_tree() %>% 
   set_mode("regression")
 ```
+[All available models are listed here](https://www.tidymodels.org/find/parsnip/)
 
 ## Your turn
 
 Edit the chunk below to use a logistic regression model.
 
 Extension/Challenge: Edit this code to use a different model. For example, try using a conditional inference tree as implemented in the partykit package by changing the engine - or try an entirely different model type!
-
-All available models are listed at <https://www.tidymodels.org/find/parsnip/>
 
 ```{r tree_spec}
 tree_spec <- decision_tree() %>% 
@@ -152,10 +164,28 @@ Try extracting the model engine object from your fitted workflow!
 
 ```{r}
 ### Your code here
+library(rpart.plot)
+
+tree_fit %>%
+  extract_preprocessor() 
+
+tree_fit %>% 
+  extract_mold()
+
+tree_fit %>%
+  extract_fit_engine() %>%
+  rpart.plot(roundint = FALSE)
 
 ```
 
 What kind of object is it? What can you do with it?
+-  it's a plot!
+-  understand overall variable importance; see also `vip` package
+-  understand flexible model explainers, see also `DALEXtra` package
+-  `partykit` package also to visualize the tree
+-  you can also add additional arguments into `set_engine` based on your engine; e.g. `set_engine("glm", arguments)`
+ 
+Learn more [here](https://www.tmwr.org/explain.html)
 
 ⚠️ Never `predict()` with any extracted components!
 
