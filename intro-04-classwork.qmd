@@ -49,6 +49,12 @@ using the same interface we can calculate metrics
 ```{r}
 augment(forested_fit, new_data = forested_train) %>%
   accuracy(truth = forested, estimate = .pred_class)
+
+augment(forested_fit, new_data = forested_train) %>%
+  specificity(truth = forested, estimate = .pred_class)
+
+augment(forested_fit, new_data = forested_train) %>%
+  sensitivity(truth = forested, estimate = .pred_class)
 ```
 
 Metric sets are a way to combine multiple similar metric functions together into a new function.
@@ -76,8 +82,12 @@ Do any metrics differ substantially between groups?
 
 ```{r}
 # Your code here!
-
+augment(forested_fit, new_data = forested_train) %>%
+  group_by(tree_no_tree) %>%
+  forested_metrics(truth = forested, estimate = .pred_class)
 ```
+*reminder to use the training dataset*
+-  specificity of `Tree` is relatively low (`unforested` but is `Tree`) & the sensitivity of `No tree` is lower than the rest of the metrics (except `Tree` specificity)
 
 ## Your turn
 
@@ -87,7 +97,27 @@ What data are being used for this ROC curve plot?
 
 ```{r}
 # Your code here!
+# Assumes _first_ factor level is event; there are options to change that
+augment(forested_fit, new_data = forested_train) %>% 
+  roc_curve(truth = forested, .pred_Yes) %>%
+  slice(1, 20, 50)
+#> # A tibble: 3 × 3
+#>   .threshold specificity sensitivity
+#>        <dbl>       <dbl>       <dbl>
+#> 1   -Inf           0           1    
+#> 2      0.235       0.885       0.972
+#> 3      0.909       0.969       0.826
 
+augment(forested_fit, new_data = forested_train) %>% 
+  roc_auc(truth = forested, .pred_Yes)
+#> # A tibble: 1 × 3
+#>   .metric .estimator .estimate
+#>   <chr>   <chr>          <dbl>
+#> 1 roc_auc binary         0.975
+
+augment(forested_fit, new_data = forested_train) %>% 
+  roc_curve(truth = forested, .pred_Yes) %>%
+  autoplot()
 ```
 
 ## Dangers of overfitting
@@ -127,8 +157,16 @@ Notice the evidence of overfitting!
 # Your code here!
 
 # Use `augment()` and `brier_class()` with `forested_fit`
-forested_fit
+augment(forested_fit, new_data = forested_train) %>% 
+  brier_class(truth = forested, .pred_Yes)
+
+augment(forested_fit, new_data = forested_test) %>% 
+  brier_class(truth = forested, .pred_Yes)
 ```
+Smaller values are better, for binary classification the *“bad model threshold”* is about 0.25.
+
+-  model is not performing so well, but we shouldn't have used the testing set to determine this (i.e. without *resubstitution*)
+-  if we test a bunch of different models, how can we tell if the differences are important?
 
 ## Your turn
 
@@ -145,6 +183,7 @@ for each fold
 # v = 10 is the default
 vfold_cv(forested_train)
 ```
+This is different for a Monte Carlo cross-validation, where you can further control the number of random rows used to assess. Here, it is controlled by the number of folds.
 
 What is in a resampling result?
 
@@ -162,6 +201,7 @@ set.seed(123)
 forested_folds <- vfold_cv(forested_train, v = 10)
 forested_folds
 ```
+Set the seed when creating resamples for reproducibility.
 
 ## Evaluating model performance
 
@@ -178,6 +218,8 @@ Aggregate metrics
 forested_res %>%
   collect_metrics()
 ```
+This resulting table shows the mean and sd values for each metric across our 10 folds.
+This shows that we can reliably measure performance using only the training data!
 
 If you want to analyze the assessment set (i.e. holdout) predictions, then you need to adjust the control object and tell it to save them:
 
