@@ -38,7 +38,9 @@ rf_wflow
 
 ```{r}
 set.seed(22)
-rf_res <- tune_grid(
+rf_res <- 
+  # fit resamples 5 times for that parameter
+  tune_grid(
   rf_wflow,
   forested_folds,
   grid = 5
@@ -48,9 +50,12 @@ rf_res <- tune_grid(
 ## Compare results
 
 ```{r}
+# best performing hyperparameter(s) 
 show_best(rf_res)
 
-best_parameter <- select_best(rf_res)
+best_parameter <- 
+  # overall best parameter
+  select_best(rf_res)
 best_parameter
 ```
 
@@ -72,5 +77,23 @@ Use grid search to find the best parameter(s).
 
 ```{r}
 # Your code here!
+
+# Grid search
+set.seed(22)
+rf_res11 <- 
+  # fit resamples 5 times for that parameter
+  tune_grid(
+  rf_wflow,
+  forested_folds,
+  grid = 11
+)
+
+# best performing hyperparameter(s) 
+show_best(rf_res11)
+
+best_parameter11 <- 
+  # overall best parameter
+  select_best(rf_res11)
+best_parameter
 
 ```
